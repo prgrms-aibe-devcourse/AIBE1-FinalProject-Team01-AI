@@ -5,3 +5,4 @@ transformers
 Pillow
 flask-cors
 python-dotenv
+requests
