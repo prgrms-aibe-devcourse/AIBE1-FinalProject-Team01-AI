@@ -7,18 +7,25 @@ from .reference_img_service import ReferenceImgService
 logger = logging.getLogger(__name__)
 
 class VerificationDTO:    
-    def __init__(self, is_valid: bool, extracted_text: str, message: str, detail_message: str):
+    def __init__(self, is_valid: bool, extracted_text: str, message: str, detail_message: str, 
+                 ocr_score: float = 0.0, layout_score: float = 0.0, total_score: float = 0.0):
         self.is_valid = is_valid
         self.extracted_text = extracted_text
         self.message = message
         self.detail_message = detail_message
+        self.ocr_score = ocr_score
+        self.layout_score = layout_score
+        self.total_score = total_score
     
     def to_dict(self) -> Dict[str, Any]:
         return {
             "isValid": self.is_valid,
             "extractedText": self.extracted_text,
             "message": self.message,
-            "detailMessage": self.detail_message
+            "detailMessage": self.detail_message,
+            "ocrScore": round(self.ocr_score * 100), 
+            "layoutScore": round(self.layout_score * 100),  
+            "totalScore": round(self.total_score * 100) 
         }
 
 
@@ -43,7 +50,10 @@ class VerificationService:
                     is_valid=False,
                     extracted_text="",
                     message="인증 실패",
-                    detail_message=f"프로그래머스 정식 레이아웃과 유사도가 낮습니다."
+                    detail_message=f"프로그래머스 정식 레이아웃과 유사도가 낮습니다.",
+                    ocr_score=0.0,
+                    layout_score=similarity_analysis.similarity_score,
+                    total_score=similarity_analysis.similarity_score * self.SIMILARITY_WEIGHT
                 )
 
             extracted_text = self.ocr_service.extract_text(image_bytes, filename)
@@ -61,7 +71,10 @@ class VerificationService:
                 is_valid=is_valid,
                 extracted_text=extracted_text,
                 message="데브코스 수강생 인증 성공!" if is_valid else "인증 실패",
-                detail_message=detail_message
+                detail_message=detail_message,
+                ocr_score=ocr_score,
+                layout_score=similarity_score,
+                total_score=final_score
             )
             
         except Exception as e:
@@ -70,7 +83,10 @@ class VerificationService:
                 is_valid=False,
                 extracted_text="",
                 message=f"이미지 처리 중 오류 발생: {str(e)}",
-                detail_message=""
+                detail_message="",
+                ocr_score=0.0,
+                layout_score=0.0,
+                total_score=0.0
             )
     
     def _calculate_ocr_score(self, text: str) -> float:
