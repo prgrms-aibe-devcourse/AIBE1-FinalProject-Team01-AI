@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-"""OCR 서비스스"""
+"""OCR 서비스"""
 class OcrService:
     def __init__(self):
         load_dotenv()
